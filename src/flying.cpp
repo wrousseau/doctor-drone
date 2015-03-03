@@ -1,5 +1,6 @@
 #include "flying.hpp"
 
+
 double Flying::getStabilisatingAngle()
 {
 	// TODO : Connect with Guitoof's optical flow module
