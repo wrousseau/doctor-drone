@@ -10,14 +10,18 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
+#include "WindowInspectorCoach.h"
+
+enum InspectionMethod { CONTOURS, SVM_COACHED };
 
 class WindowInspector
 {
-public:
+  InspectionMethod m_method;
   cv::Mat m_image;
+  WindowInspectorCoach *m_coach;
 
 public :
-  WindowInspector();
+  WindowInspector(InspectionMethod method = CONTOURS);
   ~WindowInspector();
 
   bool hasWindow(cv::Mat & image);
