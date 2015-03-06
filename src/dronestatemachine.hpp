@@ -7,10 +7,12 @@
 
 #include "events.hpp"
 #include "takingoff.hpp"
-#include "exploringfloorstatemachine.hpp"
 #include "goingup.hpp"
 #include "landing.hpp"
 #include "stopped.hpp"
+#include "flying.hpp"
+#include "photographing.hpp"
+
 
 struct DroneStateMachine : public boost::msm::front::state_machine_def<DroneStateMachine>
 {
@@ -27,22 +29,19 @@ struct DroneStateMachine : public boost::msm::front::state_machine_def<DroneStat
 		std::cout << "Leaving: DroneStateMachine" << std::endl;
 	}
 
-    // Back-end
-	typedef boost::msm::back::state_machine<ExploringFloorStateMachine> ExploringFloor;
-
 	// Initial state of the Drone
 	typedef TakingOff initial_state;
 
 	// Transition actions
-	void exploringFloorAction(exploringFloorEvent const &);
-
 	void goingUpAction(goingUpEvent const&);
 
 	void landAction(landEvent const&);
 
-	void flyAction(flyEvent const&);
-
 	void stopAction(stopEvent const&);
+
+	void flyingAction(flyEvent const&);
+
+    void takePicture(windowDetected const&);
 
 	// Makes transition table cleaner
 	typedef DroneStateMachine d; 
@@ -51,10 +50,12 @@ struct DroneStateMachine : public boost::msm::front::state_machine_def<DroneStat
 	struct transition_table : boost::mpl::vector<
 		//    Start            Event                 Next             Action                     Guard
 		//  +----------------+---------------------+----------------+--------------------------+--------+
-	a_row   < TakingOff      , exploringFloorEvent , ExploringFloor , &d::exploringFloorAction          >,
-	a_row   < ExploringFloor , goingUpEvent        , GoingUp        , &d::goingUpAction                 >,
-	a_row   < ExploringFloor , landEvent           , Landing        , &d::landAction                    >,
-	a_row   < GoingUp        , exploringFloorEvent , ExploringFloor , &d::exploringFloorAction          >,
+	a_row   < TakingOff      , flyEvent            , Flying         , &d::flyingAction                  >,
+	a_row   < Flying         , windowDetected      , Photographing  , &d::takePicture                   >,
+	a_row   < Flying         , goingUpEvent        , GoingUp        , &d::goingUpAction                 >,
+	a_row   < Flying         , landEvent           , Landing        , &d::landAction                    >,
+	a_row   < Photographing  , flyEvent            , Flying         , &d::flyingAction                  >,
+	a_row   < GoingUp        , flyEvent            , Flying         , &d::flyingAction                  >,
 	a_row   < Landing        , stopEvent           , Stopped        , &d::stopAction                    >,
 	_row    < Stopped        , stopEvent           , Stopped                                            >
 	> {};

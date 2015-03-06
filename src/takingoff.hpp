@@ -6,6 +6,7 @@
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/Twist.h>
 
+
 extern ros::NodeHandle *nodeP;
 
 struct TakingOff : public BasicState
@@ -39,7 +40,7 @@ public:
 			ros::spinOnce();
 			loopRate.sleep();
 		}
-		fsm.process_event(exploringFloorEvent());
+		fsm.process_event(flyEvent());
 	}
 
 	template <class Event, class FSM>

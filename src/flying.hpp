@@ -3,49 +3,94 @@
 
 #include "basicstate.hpp"
 #include "events.hpp"
+#include "utils.hpp"
 
 #include <geometry_msgs/Twist.h>
 #include <image_transport/image_transport.h>
+#include <ardrone_autonomy/Navdata.h>
+
+#include <boost/msm/back/state_machine.hpp>
 
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include "opticalflowequalizer/OpticalFlowEqualizer.h"
 
 extern ros::NodeHandle *nodeP;
 
 class Flying : public BasicState
 {
+private:
+	OpticalFlowEqualizer *opticalFlowEqualizer;
+	double vx;
+	double vy;
+	double vz;
+	cv::Mat currentImage;
 public:
 	template <class Event, class FSM>
 	void on_entry(Event const& e, FSM& fsm)
 	{		
 		ROS_INFO("Entering : Flying");
 
-		ros::Rate loopRate(50);
-		double speed = 0.01;
+		cv::Size size(320, 240);
+		opticalFlowEqualizer = new OpticalFlowEqualizer(size);
 
-		geometry_msgs::Twist twistMsg;
-		twistMsg.linear.x = 0.0;
-		twistMsg.linear.y = speed;
-		twistMsg.linear.z = 0.0;
-		twistMsg.angular.x = 0.0;
-		twistMsg.angular.y = 0.0;
-		twistMsg.angular.z = 0.0;
+		ros::Rate loopRate(50);
+		int direction = (Utils::getCurrentFloor() % 2 == 0) ? 1 : -1; 
+		double speed = direction * 0.75;
+
+		geometry_msgs::Twist twistTarget;
+		twistTarget.linear.x = 0.0;
+		twistTarget.linear.y = speed;
+		twistTarget.linear.z = 0.0;
+		twistTarget.angular.x = 0.0;
+		twistTarget.angular.y = 0.0;
+		twistTarget.angular.z = 0.0;
+		vx = 0.0;
+		vy = 0.0;
+		vz = 0.0;
+
+		double K = 0.75;
 
 		ros::Publisher pubTwist = nodeP->advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+		ros::Subscriber navigationSub = nodeP->subscribe("/ardrone/navdata", 1, &Flying::navigationCallback, this);	
+
+		image_transport::ImageTransport it(*nodeP);
+  		image_transport::Subscriber imageSub = it.subscribe("/ardrone/image_raw", 1, &Flying::imageCallback, this);
+		
+		int i = 0;
+		int windowsThreshold = 5;
+		int floorsThreshold = 3;
 
 		while (ros::ok())
 		{
-			image_transport::ImageTransport it(*nodeP);
-  			image_transport::Subscriber sub = it.subscribe("ardrone/front/image_raw", 1, &Flying::imageCallback, this);
-			if (isThereAWindow())
+			if (Utils::getWindowsPhotographed() >= windowsThreshold)
+			{
+				if (Utils::getCurrentFloor() >= floorsThreshold)
+				{
+					ROS_INFO("Mission Accomplished");
+					fsm.process_event(landEvent());
+					break;
+				}
+				else
+				{
+					ROS_INFO("Going Up");
+					Utils::incrementCurrentFloor();
+					fsm.process_event(goingUpEvent());
+					break;
+				}
+			}
+			else if (isThereAWindow(i))
+			{
+				ROS_INFO("Window detected");
 				fsm.process_event(windowDetected());
-			else if (isFloorFinished())
-				fsm.process_event(goingUpEvent());
+				break;
+			}
 			else 
 			{
-				twistMsg.angular.z = getStabilisatingAngle();
-				pubTwist.publish(twistMsg);
+				geometry_msgs::Twist computedTwist = computeTwist(twistTarget.linear.x, twistTarget.linear.y, twistTarget.linear.z, K);
+				pubTwist.publish(computedTwist);
 			}
+			i++;
 			ros::spinOnce();
 			loopRate.sleep();
 		}
@@ -55,25 +100,16 @@ public:
 	void on_exit(Event const&, FSM&)
 	{
 		ROS_INFO("Exiting : Flying");
+		delete opticalFlowEqualizer;
 	}
 
 	double getStabilisatingAngle();
-	bool isThereAWindow();
-	bool isFloorFinished();
+	bool isThereAWindow(int i);
+	geometry_msgs::Twist computeTwist(double vxTarget, double vyTarget, double vzTarget, double K);
 
-	void imageCallback(const sensor_msgs::ImageConstPtr& msg)
-	{
-	    cv_bridge::CvImagePtr cv_ptr;
-	    try
-	    {
-	      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-	    }
-	    catch (cv_bridge::Exception& e)
-	    {
-	      ROS_ERROR("cv_bridge exception: %s", e.what());
-	      return;
-	    }
-	}
+	void imageCallback(const sensor_msgs::ImageConstPtr& msg);
+
+	void navigationCallback(const ardrone_autonomy::Navdata& msg);
 };
 
 #endif
