@@ -58,14 +58,23 @@ public:
   		image_transport::Subscriber imageSub = it.subscribe("/ardrone/image_raw", 1, &Flying::imageCallback, this);
 		
 		int i = 0;
-		int threshold = 5;
+		int windowsThreshold = 5;
+		int floorsThreshold = 3;
 		while (ros::ok())
 		{
-			if (Utils::getWindowsPhotographed() >= threshold)
+			if (Utils::getWindowsPhotographed() >= windowsThreshold)
 			{
-				ROS_INFO("Going Up");
-				Utils::incrementCurrentFloor();
-				fsm.process_event(goingUpEvent());
+				if (Utils::getCurrentFloor() >= floorsThreshold)
+				{
+					ROS_INFO("Mission Accomplished");
+					fsm.process_event(landEvent());
+				}
+				else
+				{
+					ROS_INFO("Going Up");
+					Utils::incrementCurrentFloor();
+					fsm.process_event(goingUpEvent());
+				}
 			}
 			else if (isThereAWindow(i))
 			{
