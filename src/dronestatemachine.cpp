@@ -3,10 +3,6 @@
 #include <iostream>
 
 // Transition actions
-void DroneStateMachine::exploringFloorAction(exploringFloorEvent const &)
-{
-	std::cout << "drone::exploringFloorAction" << std::endl;
-}
 
 void DroneStateMachine::goingUpAction(goingUpEvent const&)
 {
@@ -18,12 +14,17 @@ void DroneStateMachine::landAction(landEvent const&)
 	std::cout << "drone::landAction" << std::endl;
 }
 
-void DroneStateMachine::flyAction(flyEvent const&)
+void DroneStateMachine::flyingAction(flyEvent const&)
 {
-	std::cout << "drone::flyAction" << std::endl;
+	std::cout << "drone::flyingAction" << std::endl;
 }
 
 void DroneStateMachine::stopAction(stopEvent const&)
 {
 	std::cout << "drone::stopAction" << std::endl;
+}
+
+void DroneStateMachine::takePicture(windowDetected const&)
+{ 
+    std::cout << "drone::takePicture" << std::endl; 
 }
