@@ -58,8 +58,11 @@ public:
 	{
 		ROS_INFO("Exiting : GoingUp");
 	}
-
+	
+	// Computing the twist vector (P controller)
 	geometry_msgs::Twist computeTwist(double vxTarget, double vyTarget, double vzTarget, double K);
+	
+	// ROS subscriber callback
 	void navigationCallback(const ardrone_autonomy::Navdata& msg);
 };
 

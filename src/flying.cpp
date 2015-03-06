@@ -1,17 +1,10 @@
 #include "flying.hpp"
 
-
-double Flying::getStabilisatingAngle()
-{
-	// TODO : Connect with Guitoof's optical flow module
-	return 0.0;
-}
-
 bool Flying::isThereAWindow(int i)
 {
 	if (i < 50)
 		return false;
-	return false;
+	return inspector->hasWindow(currentImage);
 }
 
 geometry_msgs::Twist Flying::computeTwist(double vxTarget, double vyTarget, double vzTarget, double K)
@@ -24,7 +17,6 @@ geometry_msgs::Twist Flying::computeTwist(double vxTarget, double vyTarget, doub
 		twistMsgGen.angular.x = 0.0; 
 		twistMsgGen.angular.y = 0.0;
 		twistMsgGen.angular.z = 0.0;
-		ROS_INFO("%f %f %f", twistMsgGen.linear.x, twistMsgGen.linear.y, twistMsgGen.linear.z);
 		return twistMsgGen;
 }
 
@@ -34,10 +26,11 @@ void Flying::imageCallback(const sensor_msgs::ImageConstPtr& msg)
     try
     {
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-      currentImage = cv::Mat::zeros(cv_ptr->image.size(), CV_8U);
-      cv::cvtColor(cv_ptr->image, currentImage, CV_BGR2GRAY);
-      double gradient = opticalFlowEqualizer->getOpticalFlowGradient(currentImage);
-      ROS_INFO("gradient : %f", gradient);
+      currentImage = cv_ptr->image;
+      //grayscaleImage = cv::Mat::zeros(cv_ptr->image.size(), CV_8U);
+      //cv::cvtColor(cv_ptr->image, grayscaleImage, CV_BGR2GRAY);
+      //double gradient = opticalFlowEqualizer->getOpticalFlowGradient(grayscaleImage);
+      //ROS_INFO("gradient : %f", gradient);
     }
     catch (cv_bridge::Exception& e)
     {

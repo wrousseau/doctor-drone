@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-// Transition actions
-
 void DroneStateMachine::goingUpAction(goingUpEvent const&)
 {
 	std::cout << "drone::goingUpAction" << std::endl;

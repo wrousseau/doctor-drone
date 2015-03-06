@@ -21,7 +21,7 @@ public:
 		startTimer();
 		hasTakenPicture = false;
 		
-		ROS_INFO("Entering : Taking Off");
+		ROS_INFO("Entering : Photographing");
 
 		ros::Rate loopRate(50);
 
@@ -34,6 +34,7 @@ public:
 		twist.angular.y = 0.0;
 		twist.angular.z = 0.0;
 
+		// Stopping for 10 seconds
 		while (ros::ok() && static_cast<double>(ros::Time::now().toSec()) < getStartTime()+10.0)
 		{
 			pubTwist.publish(twist);
@@ -41,6 +42,7 @@ public:
 			loopRate.sleep();
 		}
 
+		// Taking the picture by subscribing to the drone front camera
 		image_transport::ImageTransport it(*nodeP);
   		image_transport::Subscriber imageSub = it.subscribe("/ardrone/image_raw", 1, &Photographing::imageCallback, this);
 		while (ros::ok() && !hasTakenPicture)

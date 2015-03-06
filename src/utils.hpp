@@ -3,6 +3,10 @@
 
 #include <string>
 
+/*
+ * Provides a bunch of static methods which provide
+ * data which several states should access or modify
+ */
 class Utils
 {
 private:

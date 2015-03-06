@@ -39,7 +39,7 @@ public:
 			ros::spinOnce();
 			loopRate.sleep();
 		}
-		fsm.process_event(exploringFloorEvent());
+		fsm.process_event(stopEvent());
 	}
 
 	template <class Event, class FSM>

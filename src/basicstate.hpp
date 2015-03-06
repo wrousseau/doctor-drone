@@ -4,6 +4,9 @@
 #include <boost/msm/front/state_machine_def.hpp>
 #include <ros/ros.h>
 
+/*
+ * A basic state machine state with a timer
+ */
 struct BasicState : public boost::msm::front::state<>
 {
 private:

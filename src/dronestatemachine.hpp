@@ -13,7 +13,6 @@
 #include "flying.hpp"
 #include "photographing.hpp"
 
-
 struct DroneStateMachine : public boost::msm::front::state_machine_def<DroneStateMachine>
 {
 

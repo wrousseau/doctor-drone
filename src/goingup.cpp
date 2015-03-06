@@ -17,6 +17,5 @@ geometry_msgs::Twist GoingUp::computeTwist(double vxTarget, double vyTarget, dou
 	twistMsgGen.angular.x = 0.0; 
 	twistMsgGen.angular.y = 0.0;
 	twistMsgGen.angular.z = 0.0;
-	ROS_INFO("%f %f %f", twistMsgGen.linear.x, twistMsgGen.linear.y, twistMsgGen.linear.z);
 	return twistMsgGen;
 }
