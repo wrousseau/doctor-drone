@@ -60,6 +60,7 @@ public:
 		int i = 0;
 		int windowsThreshold = 5;
 		int floorsThreshold = 3;
+
 		while (ros::ok())
 		{
 			if (Utils::getWindowsPhotographed() >= windowsThreshold)
@@ -68,12 +69,14 @@ public:
 				{
 					ROS_INFO("Mission Accomplished");
 					fsm.process_event(landEvent());
+					break;
 				}
 				else
 				{
 					ROS_INFO("Going Up");
 					Utils::incrementCurrentFloor();
 					fsm.process_event(goingUpEvent());
+					break;
 				}
 			}
 			else if (isThereAWindow(i))
